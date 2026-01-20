@@ -19,8 +19,10 @@ import {
 import {
   type McpServersConfig,
   type ServerConfig,
+  findDisabledMatch,
   getServerConfig,
   loadConfig,
+  loadDisabledTools,
 } from '../config.js';
 import { callViaDaemon, isDaemonRunning } from '../daemon.js';
 import {
@@ -29,6 +31,7 @@ import {
   invalidJsonArgsError,
   invalidTargetError,
   serverConnectionError,
+  toolDisabledError,
   toolExecutionError,
   toolNotFoundError,
 } from '../errors.js';
@@ -130,6 +133,24 @@ export async function callCommand(options: CallOptions): Promise<void> {
     toolName = parsed.tool;
   } catch (error) {
     console.error((error as Error).message);
+    process.exit(ErrorCode.CLIENT_ERROR);
+  }
+
+  const disabledPatterns = await loadDisabledTools();
+  const disabledMatch = findDisabledMatch(
+    `${serverName}/${toolName}`,
+    disabledPatterns,
+  );
+  if (disabledMatch) {
+    console.error(
+      formatCliError(
+        toolDisabledError(
+          `${serverName}/${toolName}`,
+          disabledMatch.pattern,
+          disabledMatch.source,
+        ),
+      ),
+    );
     process.exit(ErrorCode.CLIENT_ERROR);
   }
 

@@ -273,6 +273,37 @@ The CLI searches for configuration in this order:
 | `MCP_STRICT_ENV` | Error on missing `${VAR}` in config | `true` |
 | `MCP_DAEMON_SOCKET` | Daemon socket path | `~/.mcp-cli/daemon.sock` |
 | `MCP_DAEMON_IDLE_MS` | Daemon idle timeout (ms) | `300000` |
+| `MCP_DISABLED_TOOLS` | Comma-separated patterns to disable | (none) |
+
+### Disabled Tools
+
+Block specific tools from being called or listed. Patterns support `*` wildcards.
+
+**File locations (all merged):**
+
+| Path | Scope |
+|------|-------|
+| `~/.config/mcp/disabled_tools` | Global |
+| `~/.mcp_disabled_tools` | Global |
+| `./mcp_disabled_tools` | Project |
+
+**File format:**
+
+```
+# One pattern per line
+filesystem/write_file        # Exact match
+filesystem/delete_*          # Glob pattern
+*/dangerous_*                # Any server
+github/*                     # Entire server
+```
+
+**Error output:**
+
+```
+Error [TOOL_DISABLED]: Tool "filesystem/write_file" is disabled
+  Details: Matched pattern "filesystem/*" from ~/.config/mcp/disabled_tools
+  Suggestion: Use alternative tools or approaches to complete this task
+```
 
 ## Using with AI Agents
 
